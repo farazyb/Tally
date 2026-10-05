@@ -1,0 +1,8 @@
+ALTER TABLE client ALTER COLUMN id DROP IDENTITY;
+
+CREATE SEQUENCE client_sequence
+    START WITH 100000
+    INCREMENT BY 50;
+
+ALTER SEQUENCE client_sequence OWNER TO user_svc;
+ALTER SEQUENCE client_sequence OWNED BY client.id;
