@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.tally.keycloak'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    mockitoAgent
+}
+
+def mockitoVersion = '5.24.0'
+
+dependencies {
+    // Provided by the Keycloak server at runtime; never bundled into the JAR.
+    compileOnly "org.keycloak:keycloak-core:${keycloakVersion}"
+    compileOnly "org.keycloak:keycloak-server-spi:${keycloakVersion}"
+    compileOnly "org.keycloak:keycloak-server-spi-private:${keycloakVersion}"
+    // Declared 'provided' in Keycloak's POMs, so it is not inherited transitively.
+    compileOnly 'org.jboss.logging:jboss-logging:3.6.3.Final'
+
+    testImplementation "org.keycloak:keycloak-core:${keycloakVersion}"
+    testImplementation "org.keycloak:keycloak-server-spi:${keycloakVersion}"
+    testImplementation "org.keycloak:keycloak-server-spi-private:${keycloakVersion}"
+    testImplementation 'org.jboss.logging:jboss-logging:3.6.3.Final'
+
+    testImplementation platform('org.junit:junit-bom:5.14.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+    mockitoAgent("org.mockito:mockito-core:${mockitoVersion}") { transitive = false }
+}
+
+// Emit Java 17 bytecode regardless of the JDK running Gradle.
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    // Load Mockito's agent explicitly instead of relying on dynamic self-attach (restricted on JDK 21+).
+    jvmArgumentProviders.add({ ["-javaagent:${configurations.mockitoAgent.singleFile}"] } as CommandLineArgumentProvider)
+}

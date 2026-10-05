@@ -1,0 +1,24 @@
+
+spring:
+  application:
+    name: api-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8091/realms/tally
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            # End users may only read their own profile (user-service resolves it from the token's sub).
+            # Clients are created/updated only by Keycloak's user-sync listener, which calls user-service
+            # directly with X-Api-Key, so POST is deliberately not routed.
+            - id: user-service
+              uri: ${USER_SERVICE_URL:http://localhost:8080}
+              predicates:
+                - Path=/api/v1/clients/me
+                - Method=GET
+server:
+  port: 8081
