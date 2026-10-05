@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: user-service
+  config:
+    # Local secrets (USER_DB_PASSWORD, USER_SYNC_API_KEY) come from the repo-root .env, see .env.example.
+    # Real environment variables take precedence.
+    import: optional:file:.env[.properties],optional:file:../.env[.properties]
+  datasource:
+    url: jdbc:postgresql://localhost:5432/user_db
+    username: user_svc
+    password: ${USER_DB_PASSWORD}
+  jpa:
+    show-sql:  false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  mvc:
+    problemdetails:
+      enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Same issuer as api-gateway; tokens are validated here too, since user-service is reachable directly.
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8091/realms/tally}
+server:
+  port: 8080
+user-sync:
+  # Shared secret for the Keycloak user-sync listener (X-Api-Key header on POST /api/v1/clients).
+  # Must match USER_SYNC_API_KEY passed to Keycloak; if unset, every upsert is rejected.
+  api-key: ${USER_SYNC_API_KEY:}
