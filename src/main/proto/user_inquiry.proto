@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+// Contract for other Tally services that need to look up users. Clients generate their stubs from this file;
+// keep changes backward compatible (add fields with new numbers, never renumber or reuse removed ones).
+package tally.user.v1;
+
+option java_multiple_files = true;
+option java_package = "com.example.userservice.grpc.v1";
+
+service UserInquiry {
+  // Resolves a profile key to the Keycloak user id (sub). Fails with NOT_FOUND if no user has that key,
+  // and INVALID_ARGUMENT if the key is empty.
+  rpc GetUserByProfileKey(GetUserByProfileKeyRequest) returns (GetUserByProfileKeyResponse);
+}
+
+message GetUserByProfileKeyRequest {
+  string profile_key = 1;
+}
+
+message GetUserByProfileKeyResponse {
+  string sub_key = 1;
+}
