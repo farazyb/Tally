@@ -151,6 +151,7 @@ services:
       CONNECT_CONFIG_PROVIDERS: env
       CONNECT_CONFIG_PROVIDERS_ENV_CLASS: org.apache.kafka.common.config.provider.EnvVarConfigProvider
       USER_DB_PASSWORD: ${USER_DB_PASSWORD:?set in .env}
+      WALLET_DB_PASSWORD: ${WALLET_DB_PASSWORD:?set in .env}
     depends_on:
       - kafka
       - postgres

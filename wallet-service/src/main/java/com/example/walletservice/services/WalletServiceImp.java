@@ -2,6 +2,8 @@ package com.example.walletservice.services;
 
 import com.example.walletservice.domain.Status;
 import com.example.walletservice.domain.Wallet;
+import com.example.walletservice.events.WalletCreatedEvent;
+import com.example.walletservice.outbox.OutboxWriter;
 import com.example.walletservice.repository.WalletRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 @Slf4j
 public class WalletServiceImp implements WalletService {
+    static final String AGGREGATE_TYPE = "wallet";
+    static final String WALLET_CREATED = "WalletCreated";
+
     private final WalletRepository walletRepository;
+    private final OutboxWriter outboxWriter;
 
     /**
      * Creates the client's wallet. Idempotent: events are delivered at least once, so a client
@@ -26,11 +32,15 @@ public class WalletServiceImp implements WalletService {
             log.info("Wallet for subKey {} already exists, skipping event {}", subKey, idempotencyKey);
             return;
         }
-        walletRepository.save(Wallet.builder()
+        // Flush so the INSERT runs and @CreationTimestamp fills createdAt for the event.
+        Wallet wallet = walletRepository.saveAndFlush(Wallet.builder()
                 .subKey(subKey)
                 .idempotencyKey(idempotencyKey)
                 .status(Status.ACTIVE)
                 .build());
+
+        // Same transaction as the insert: the event exists if and only if the wallet was committed.
+        outboxWriter.write(AGGREGATE_TYPE, subKey, WALLET_CREATED, new WalletCreatedEvent(subKey, wallet.getCreatedAt()));
         log.info("Created wallet for subKey {} (event {})", subKey, idempotencyKey);
     }
 }
