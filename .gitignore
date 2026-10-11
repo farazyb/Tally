@@ -5,6 +5,9 @@
 data/
 docker/kafka_data/
 
+# Log files (logs/security.log written by each service)
+logs/
+
 # Build output
 build/
 .gradle/

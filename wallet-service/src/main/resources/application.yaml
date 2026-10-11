@@ -9,6 +9,9 @@ spring:
     consumer:
       group-id: wallet-service
     bootstrap-servers: "localhost:9094"
+    listener:
+      # Continues the producer's trace from the record's traceparent header, so log lines share its traceId.
+      observation-enabled: true
   datasource:
     url: jdbc:postgresql://localhost:5432/wallet_db
     username: wallet_svc

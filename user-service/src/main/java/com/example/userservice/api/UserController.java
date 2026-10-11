@@ -5,7 +5,10 @@ import com.example.userservice.model.Client;
 import com.example.userservice.model.ContactInformation;
 import com.example.userservice.services.ClientUpsertResult;
 import com.example.userservice.services.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,6 +20,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/v1/clients")
 @AllArgsConstructor
 public class UserController {
+    private static final Logger SECURITY = LoggerFactory.getLogger("SECURITY");
+
     private final UserService userService;
 
     /**
@@ -39,7 +44,8 @@ public class UserController {
      * Returns 201 when the client was created and 200 when it was updated.
      */
     @PostMapping
-    public ResponseEntity<UserProfileDTO> upsertUserProfile(@RequestBody UserProfileDTO userProfileDTO) {
+    public ResponseEntity<UserProfileDTO> upsertUserProfile(@RequestBody UserProfileDTO userProfileDTO,
+                                                            HttpServletRequest request) {
         if (userProfileDTO.subkey() == null || userProfileDTO.subkey().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "subkey is required");
         }
@@ -49,6 +55,14 @@ public class UserController {
                 userProfileDTO.email(),
                 userProfileDTO.phoneNumber(),
                 userProfileDTO.address());
+
+        // Reached only with a valid API key (SyncApiKeyInterceptor): an authorized write of personal data.
+        SECURITY.atInfo()
+                .addKeyValue("securityEvent", "client_sync")
+                .addKeyValue("outcome", result.created() ? "created" : "updated")
+                .addKeyValue("subKey", userProfileDTO.subkey())
+                .addKeyValue("clientIp", request.getRemoteAddr())
+                .log("Client profile synced via API key");
 
         return ResponseEntity.status(result.created() ? HttpStatus.CREATED : HttpStatus.OK)
                 .body(toDto(result.client()));

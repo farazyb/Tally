@@ -22,7 +22,7 @@
     "transforms.outbox.table.field.event.payload": "payload",
     "transforms.outbox.route.by.field": "aggregate_type",
     "transforms.outbox.route.topic.replacement": "user.${routedByValue}-events",
-    "transforms.outbox.table.fields.additional.placement": "event_type:header:eventType",
+    "transforms.outbox.table.fields.additional.placement": "event_type:header:eventType,traceparent:header:traceparent",
     "transforms.outbox.table.expand.json.payload": "true",
 
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",

@@ -7,6 +7,8 @@ import com.example.walletservice.outbox.OutboxWriter;
 import com.example.walletservice.repository.WalletRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class WalletServiceImp implements WalletService {
     static final String AGGREGATE_TYPE = "wallet";
     static final String WALLET_CREATED = "WalletCreated";
+
+    private static final Logger SECURITY = LoggerFactory.getLogger("SECURITY");
 
     private final WalletRepository walletRepository;
     private final OutboxWriter outboxWriter;
@@ -42,5 +46,11 @@ public class WalletServiceImp implements WalletService {
         // Same transaction as the insert: the event exists if and only if the wallet was committed.
         outboxWriter.write(AGGREGATE_TYPE, subKey, WALLET_CREATED, new WalletCreatedEvent(subKey, wallet.getCreatedAt()));
         log.info("Created wallet for subKey {} (event {})", subKey, idempotencyKey);
+        SECURITY.atInfo()
+                .addKeyValue("securityEvent", "wallet_created")
+                .addKeyValue("subKey", subKey)
+                .addKeyValue("walletId", wallet.getId())
+                .addKeyValue("eventId", idempotencyKey)
+                .log("Wallet created");
     }
 }
