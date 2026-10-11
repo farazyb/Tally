@@ -1,7 +1,7 @@
 # keycloak-user-sync
 
 A Keycloak event listener (`user-sync`) that POSTs a user's profile to the backend after
-`REGISTER`, `UPDATE_PROFILE` or `VERIFY_PROFILE`. It is built for Keycloak **26.7.4**
+`REGISTER`, `LOGIN`, `UPDATE_PROFILE` or `VERIFY_PROFILE`. It is built for Keycloak **26.7.4**
 (`keycloakVersion` in `gradle.properties`, which must match the server).
 
 Body sent to `USER_SYNC_API_URL` with header `X-Api-Key: $USER_SYNC_API_KEY`:
@@ -11,7 +11,9 @@ Body sent to `USER_SYNC_API_URL` with header `X-Api-Key: $USER_SYNC_API_KEY`:
   "phoneNumber": "...", "address": "..." }
 ```
 
-Failures are logged and never block the login.
+The request is sent on a background thread (2 threads, queue of 1000), so a slow or unavailable
+backend never delays the login. Failures are logged and dropped; because every login syncs again,
+a user missed while the backend was down is caught up on their next login.
 
 ## Build
 
@@ -39,7 +41,7 @@ Output: `build/libs/keycloak-user-sync-1.0.0.jar`. It includes no dependencies, 
 
    ```yaml
      environment:
-       USER_SYNC_API_URL: http://user-service:8080/internal/users/sync
+       USER_SYNC_API_URL: http://user-service:8080/api/v1/clients
        USER_SYNC_API_KEY: ${USER_SYNC_API_KEY}  # from .env
    ```
 

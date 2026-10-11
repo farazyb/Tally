@@ -128,7 +128,7 @@ class UserSyncEventListenerProviderTest {
 
     @Test
     void unrelatedEventSendsNothing() throws Exception {
-        provider(apiUrl).onEvent(event(EventType.LOGIN, USER_ID));
+        provider(apiUrl).onEvent(event(EventType.LOGOUT, USER_ID));
 
         assertNull(received.poll(500, TimeUnit.MILLISECONDS));
     }
@@ -169,7 +169,8 @@ class UserSyncEventListenerProviderTest {
     }
 
     private UserSyncEventListenerProvider provider(URI url) {
-        return new UserSyncEventListenerProvider(session, url, API_KEY);
+        // Send on the calling thread so the tests stay deterministic.
+        return new UserSyncEventListenerProvider(session, url, API_KEY, Runnable::run);
     }
 
     private static Event event(EventType type, String userId) {

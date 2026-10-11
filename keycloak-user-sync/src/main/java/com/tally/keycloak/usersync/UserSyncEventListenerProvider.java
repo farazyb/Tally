@@ -7,6 +7,8 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 
 import org.jboss.logging.Logger;
 import org.keycloak.events.Event;
@@ -18,15 +20,18 @@ import org.keycloak.models.UserModel;
 import org.keycloak.util.JsonSerialization;
 
 /**
- * Sends the user's profile to the backend after registration or a profile update.
- * Any failure is logged and swallowed so a login is never broken by this listener.
+ * Sends the user's profile to the backend after registration, login or a profile update.
+ * <p>
+ * The payload is built on the request thread, where the Keycloak session is valid; the POST runs on
+ * {@code sender} so a slow or unavailable backend never delays the login. Any failure is logged and
+ * swallowed. Syncing on every login lets the backend catch up on a sync it missed while it was down.
  */
 public class UserSyncEventListenerProvider implements EventListenerProvider {
 
     private static final Logger LOG = Logger.getLogger(UserSyncEventListenerProvider.class);
 
     // Compared by name so the code compiles against Keycloak versions that lack some constants.
-    private static final Set<String> SYNC_EVENT_TYPES = Set.of("REGISTER", "UPDATE_PROFILE", "VERIFY_PROFILE");
+    private static final Set<String> SYNC_EVENT_TYPES = Set.of("REGISTER", "LOGIN", "UPDATE_PROFILE", "VERIFY_PROFILE");
 
     static final String ATTR_PHONE_NUMBER = "phoneNumber";
     static final String ATTR_ADDRESS = "address";
@@ -43,15 +48,18 @@ public class UserSyncEventListenerProvider implements EventListenerProvider {
     private final KeycloakSession session;
     private final URI apiUrl;
     private final String apiKey;
+    private final Executor sender;
 
     /**
      * @param apiUrl backend endpoint; {@code null} disables the listener
      * @param apiKey value for the {@code X-Api-Key} header; omitted when {@code null}
+     * @param sender runs the HTTP request
      */
-    public UserSyncEventListenerProvider(KeycloakSession session, URI apiUrl, String apiKey) {
+    public UserSyncEventListenerProvider(KeycloakSession session, URI apiUrl, String apiKey, Executor sender) {
         this.session = session;
         this.apiUrl = apiUrl;
         this.apiKey = apiKey;
+        this.sender = sender;
     }
 
     @Override
@@ -72,10 +80,10 @@ public class UserSyncEventListenerProvider implements EventListenerProvider {
                 LOG.debugf("User %s not found for event %s, skipping sync", userId, event.getType());
                 return;
             }
-            send(userId, toPayload(user));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOG.errorf(e, "Interrupted while syncing user %s to %s", userId, apiUrl);
+            String body = JsonSerialization.writeValueAsString(toPayload(user));
+            sender.execute(() -> send(userId, body));
+        } catch (RejectedExecutionException e) {
+            LOG.warnf("User sync queue is full, dropping sync of user %s to %s", userId, apiUrl);
         } catch (Exception e) {
             LOG.errorf(e, "Failed to sync user %s to %s", userId, apiUrl);
         }
@@ -91,9 +99,7 @@ public class UserSyncEventListenerProvider implements EventListenerProvider {
                 user.getFirstAttribute(ATTR_ADDRESS));
     }
 
-    private void send(String userId, UserSyncPayload payload) throws Exception {
-        String body = JsonSerialization.writeValueAsString(payload);
-
+    private void send(String userId, String body) {
         HttpRequest.Builder request = HttpRequest.newBuilder(apiUrl)
                 .timeout(TIMEOUT)
                 .header("Content-Type", "application/json")
@@ -102,12 +108,19 @@ public class UserSyncEventListenerProvider implements EventListenerProvider {
             request.header(API_KEY_HEADER, apiKey);
         }
 
-        HttpResponse<Void> response = HTTP_CLIENT.send(request.build(), HttpResponse.BodyHandlers.discarding());
-        int status = response.statusCode();
-        if (status < 200 || status >= 300) {
-            LOG.warnf("User sync for %s returned HTTP %d from %s", userId, status, apiUrl);
-        } else {
-            LOG.debugf("Synced user %s (HTTP %d)", userId, status);
+        try {
+            HttpResponse<Void> response = HTTP_CLIENT.send(request.build(), HttpResponse.BodyHandlers.discarding());
+            int status = response.statusCode();
+            if (status < 200 || status >= 300) {
+                LOG.warnf("User sync for %s returned HTTP %d from %s", userId, status, apiUrl);
+            } else {
+                LOG.debugf("Synced user %s (HTTP %d)", userId, status);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.errorf(e, "Interrupted while syncing user %s to %s", userId, apiUrl);
+        } catch (Exception e) {
+            LOG.errorf(e, "Failed to sync user %s to %s", userId, apiUrl);
         }
     }
 
@@ -118,6 +131,6 @@ public class UserSyncEventListenerProvider implements EventListenerProvider {
 
     @Override
     public void close() {
-        // Nothing to release; the HTTP client is shared.
+        // Nothing to release; the HTTP client and the sender are shared.
     }
 }
