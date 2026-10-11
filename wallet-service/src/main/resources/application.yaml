@@ -1,3 +1,25 @@
 spring:
   application:
     name: wallet-service
+  config:
+    # Local secrets (WALLET_DB_PASSWORD) come from the repo-root .env, see .env.example.
+    # Real environment variables take precedence.
+    import: optional:file:.env[.properties],optional:file:../.env[.properties]
+  kafka:
+    consumer:
+      group-id: wallet-service
+    bootstrap-servers: "localhost:9094"
+  datasource:
+    url: jdbc:postgresql://localhost:5432/wallet_db
+    username: wallet_svc
+    password: ${WALLET_DB_PASSWORD}
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 8083
