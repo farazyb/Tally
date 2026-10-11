@@ -20,9 +20,18 @@ public class UserServiceImp implements UserService {
     private final OutboxWriter outboxWriter;
 
     @Override
-    @Transactional(readOnly = true)
-    public Optional<Client> findClientProfile(String subkey) {
-        return clientRepository.findBySubKey(subkey);
+    @Transactional
+    public Client getOrCreateClientProfile(String subkey, String firstName, String lastName, String email) {
+        Optional<Client> existing = clientRepository.findBySubKey(subkey);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        Long nextId = clientRepository.nextId();
+        if (clientRepository.insertIfAbsent(nextId, subkey, firstName, lastName, email, hashFunction(nextId)) == 1) {
+            // Same transaction as the insert: the event exists if and only if the client was committed.
+            outboxWriter.write(AGGREGATE_TYPE, subkey, CLIENT_PROFILE_CREATED, new ClientProfileCreatedEvent(subkey, email));
+        }
+        return clientRepository.findBySubKey(subkey).orElseThrow();
     }
 
     @Override

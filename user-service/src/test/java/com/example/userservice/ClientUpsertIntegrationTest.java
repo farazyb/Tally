@@ -234,9 +234,16 @@ class ClientUpsertIntegrationTest {
     }
 
     @Test
-    void meWithoutProfileIsNotFound() throws Exception {
-        mockMvc.perform(get("/api/v1/clients/me").with(jwt().jwt(token -> token.subject("no-profile-yet"))))
-                .andExpect(status().isNotFound());
+    void meWithoutProfileCreatesItFromTheToken() throws Exception {
+        mockMvc.perform(get("/api/v1/clients/me").with(jwt().jwt(token -> token.subject(SUBKEY)
+                        .claim("given_name", "Ada").claim("family_name", "Lovelace").claim("email", "ada@example.com"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.subkey").value(SUBKEY))
+                .andExpect(jsonPath("$.firstName").value("Ada"))
+                .andExpect(jsonPath("$.email").value("ada@example.com"));
+
+        assertThat(outboxEvents()).singleElement()
+                .satisfies(event -> assertThat(event.get("event_type")).isEqualTo("ClientProfileCreated"));
     }
 
     @Test

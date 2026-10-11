@@ -2,6 +2,7 @@ package com.example.userservice.repository;
 
 import com.example.userservice.model.Client;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -39,6 +40,27 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
                            @Param("phoneNumber") String phoneNumber,
                            @Param("address") String address,
                            @Param("profileKey") String profileKey);
+
+    /**
+     * Inserts the client only if {@code sub_key} does not exist yet; an existing row is left untouched,
+     * so a concurrent full sync from Keycloak is never overwritten with this partial data.
+     *
+     * @return {@code 1} if the row was inserted, {@code 0} if it already existed
+     */
+    @Modifying
+    @Query(value = """
+            insert into client (id, sub_key, name, surname, email, profile_key)
+            values (:id, :subKey,
+                    cast(:firstName as varchar), cast(:lastName as varchar), cast(:email as varchar),
+                    cast(:profileKey as varchar))
+            on conflict (sub_key) do nothing
+            """, nativeQuery = true)
+    int insertIfAbsent(@Param("id") Long id,
+                       @Param("subKey") String subKey,
+                       @Param("firstName") String firstName,
+                       @Param("lastName") String lastName,
+                       @Param("email") String email,
+                       @Param("profileKey") String profileKey);
 
     @Query(value = "select nextval('client_sequence')", nativeQuery = true)
     long nextId();

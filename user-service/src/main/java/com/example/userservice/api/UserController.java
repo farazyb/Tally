@@ -22,12 +22,16 @@ public class UserController {
     /**
      * The caller's own profile. The subkey is taken from the token's {@code sub} claim,
      * so a user can never request someone else's profile.
+     * <p>
+     * If the profile is missing (its sync from Keycloak was missed), it is created from the token's
+     * {@code given_name}, {@code family_name} and {@code email} claims; the next Keycloak sync fills in the rest.
      */
     @GetMapping("/me")
     public UserProfileDTO getMyProfile(@AuthenticationPrincipal Jwt jwt) {
-        return userService.findClientProfile(jwt.getSubject())
-                .map(UserController::toDto)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile not found"));
+        return toDto(userService.getOrCreateClientProfile(jwt.getSubject(),
+                jwt.getClaimAsString("given_name"),
+                jwt.getClaimAsString("family_name"),
+                jwt.getClaimAsString("email")));
     }
 
     /**
