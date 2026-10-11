@@ -42,8 +42,8 @@ class UserInquiryGrpcServiceTest {
 
     @Autowired
     private ClientRepository clientRepository;
-    // Spring Boot secures the gRPC server with the same JWT resource server as HTTP; the decoder is mocked
-    // so the test doesn't need a running Keycloak.
+    // gRPC serves only services on the private network, so LocalGrpcSecurityConfig permits all calls.
+    // The other tests still send a bearer token; the decoder is mocked so no running Keycloak is needed.
     @MockitoBean
     private JwtDecoder jwtDecoder;
 
@@ -67,13 +67,15 @@ class UserInquiryGrpcServiceTest {
                 .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(headers));
     }
 
+    // gRPC is private-network only (LocalGrpcSecurityConfig permits all), so a call without a token is served.
     @Test
-    void callWithoutTokenIsRejected() {
+    void callWithoutTokenIsPermitted() {
+        clientRepository.saveAndFlush(Client.builder().subKey("4f1c2b8e-sub").profileKey("q0U").build());
         var anonymous = UserInquiryGrpc.newBlockingStub(channel);
 
-        assertThatThrownBy(() -> anonymous.getUserByProfileKey(request("q0U")))
-                .isInstanceOfSatisfying(StatusRuntimeException.class,
-                        e -> assertThat(e.getStatus().getCode()).isEqualTo(Status.Code.UNAUTHENTICATED));
+        var response = anonymous.getUserByProfileKey(request("q0U"));
+
+        assertThat(response.getSubKey()).isEqualTo("4f1c2b8e-sub");
     }
 
     @AfterEach
