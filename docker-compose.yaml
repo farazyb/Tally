@@ -155,3 +155,70 @@ services:
     depends_on:
       - kafka
       - postgres
+
+  user-service:
+    profiles: ["apps"]
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    image: tally/user-service:dev
+    container_name: user-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/user_db
+      USER_DB_PASSWORD: ${USER_DB_PASSWORD:?set in .env}
+      USER_SYNC_API_KEY: ${USER_SYNC_API_KEY:?set in .env}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8091/realms/tally
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/tally/protocol/openid-connect/certs
+    ports:
+      - "8080:8080"
+    volumes:
+      - user-service-logs:/application/logs
+    depends_on:
+      - postgres
+      - keycloak
+    restart: unless-stopped
+
+  wallet-service:
+    profiles: ["apps"]
+    build:
+      context: .
+      dockerfile: wallet-service/Dockerfile
+    image: tally/wallet-service:dev
+    container_name: wallet-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/wallet_db
+      WALLET_DB_PASSWORD: ${WALLET_DB_PASSWORD:?set in .env}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8083:8083"
+    volumes:
+      - wallet-service-logs:/application/logs
+    depends_on:
+      - postgres
+      - kafka
+    restart: unless-stopped
+
+  api-gateway:
+    profiles: ["apps"]
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    image: tally/api-gateway:dev
+    container_name: api-gateway
+    environment:
+      USER_SERVICE_URL: http://user-service:8080
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8091/realms/tally
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/tally/protocol/openid-connect/certs
+    ports:
+      - "8081:8081"
+    volumes:
+      - api-gateway-logs:/application/logs
+    depends_on:
+      - user-service
+      - keycloak
+    restart: unless-stopped
+
+volumes:
+  user-service-logs:
+  wallet-service-logs:
+  api-gateway-logs:
