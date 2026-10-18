@@ -1,0 +1,11 @@
+rootProject.name = 'tally'
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+
+include 'user-service'
+include 'wallet-service'
+include 'api-gateway'
