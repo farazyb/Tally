@@ -19,6 +19,7 @@ services:
     volumes:
       - ./docker/postgres/init.sh:/docker-entrypoint-initdb.d/init.sh
       - ./data/postgres/:/var/lib/postgresql/
+    restart: unless-stopped
 
 
   keycloak:
@@ -46,6 +47,7 @@ services:
       - ./keycloak-user-sync/build/libs/:/opt/keycloak/providers/:ro
     depends_on:
       - postgres
+    restart: unless-stopped
 
   kafka:
     container_name: kafka
@@ -115,9 +117,11 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
       # Default number of partitions per topic
       KAFKA_NUM_PARTITIONS: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
 
     volumes:
       - ./docker/kafka_data:/var/lib/kafka/data
+    restart: unless-stopped
 
   kafka-ui:
     container_name: kafka-ui
@@ -155,6 +159,7 @@ services:
     depends_on:
       - kafka
       - postgres
+    restart: unless-stopped
 
   user-service:
     profiles: ["apps"]
