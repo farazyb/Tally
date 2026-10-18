@@ -39,9 +39,8 @@ dependencies {
     implementation project(':tally-common')
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    // Tracing: puts traceId/spanId in the MDC (and so in every log line) and propagates them.
-    implementation 'org.springframework.boot:spring-boot-micrometer-tracing-brave'
-    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+    implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
+    implementation "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:${opentelemetryLogbackAppenderVersion}"
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
@@ -65,6 +64,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation('org.springframework.boot:spring-boot-starter-json')
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
+
 }
 
 tasks.named('test') {

@@ -32,4 +32,7 @@ dependencies {
     compileOnly 'io.micrometer:micrometer-tracing'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'io.opentelemetry:opentelemetry-api'
+    compileOnly "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:${opentelemetryLogbackAppenderVersion}"
+    compileOnly 'ch.qos.logback:logback-classic'
 }

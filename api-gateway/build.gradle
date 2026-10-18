@@ -21,9 +21,8 @@ ext {
 dependencies {
     implementation project(':tally-common')
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    // Tracing: puts traceId/spanId in the MDC (and so in every log line) and propagates them.
-    implementation 'org.springframework.boot:spring-boot-micrometer-tracing-brave'
-    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+    implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
+    implementation "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:${opentelemetryLogbackAppenderVersion}"
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway-server-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'

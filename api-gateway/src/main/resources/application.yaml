@@ -20,5 +20,10 @@ spring:
               predicates:
                 - Path=/api/v1/clients/me
                 - Method=GET
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
 server:
   port: 8081

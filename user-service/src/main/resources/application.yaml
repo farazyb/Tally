@@ -25,6 +25,13 @@ spring:
         jwt:
           # Same issuer as api-gateway; tokens are validated here too, since user-service is reachable directly.
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8091/realms/tally}
+
+
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
 server:
   port: 8080
 user-sync:

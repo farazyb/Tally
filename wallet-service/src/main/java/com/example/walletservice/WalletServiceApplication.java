@@ -1,5 +1,6 @@
 package com.example.walletservice;
 
+import com.example.common.logging.OpenTelemetryLoggingConfiguration;
 import com.example.common.outbox.OutboxConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -7,7 +8,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.kafka.annotation.EnableKafka;
 
 @SpringBootApplication
-@Import(OutboxConfiguration.class)
+@Import({OutboxConfiguration.class, OpenTelemetryLoggingConfiguration.class})
 @EnableKafka
 public class WalletServiceApplication {
 
