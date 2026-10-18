@@ -1,5 +1,7 @@
 package com.example.userservice.security;
 
+import com.example.common.security.AuditingAccessDeniedHandler;
+import com.example.common.security.AuditingAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

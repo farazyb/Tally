@@ -3,7 +3,7 @@ package com.example.walletservice.services;
 import com.example.walletservice.domain.Status;
 import com.example.walletservice.domain.Wallet;
 import com.example.walletservice.events.WalletCreatedEvent;
-import com.example.walletservice.outbox.OutboxWriter;
+import com.example.common.outbox.OutboxWriter;
 import com.example.walletservice.repository.WalletRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

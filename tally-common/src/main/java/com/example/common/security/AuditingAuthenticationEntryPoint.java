@@ -1,4 +1,4 @@
-package com.example.userservice.security;
+package com.example.common.security;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
@@ -16,7 +15,6 @@ import java.io.IOException;
  * Writes every failed authentication (missing, malformed, expired or invalid bearer token) to the SECURITY log,
  * then responds like the default resource-server entry point (401 with WWW-Authenticate).
  */
-@Component
 public class AuditingAuthenticationEntryPoint implements AuthenticationEntryPoint {
     private static final Logger SECURITY = LoggerFactory.getLogger("SECURITY");
 

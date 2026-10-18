@@ -2,7 +2,7 @@ package com.example.userservice.services;
 
 import com.example.userservice.events.ClientProfileCreatedEvent;
 import com.example.userservice.model.Client;
-import com.example.userservice.outbox.OutboxWriter;
+import com.example.common.outbox.OutboxWriter;
 import com.example.userservice.repository.ClientRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

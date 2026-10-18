@@ -1,4 +1,4 @@
-package com.example.userservice.security;
+package com.example.common.security;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -17,7 +16,6 @@ import java.security.Principal;
  * Writes every access-control rejection of an authenticated caller to the SECURITY log,
  * then responds like the default resource-server handler (403 with WWW-Authenticate).
  */
-@Component
 public class AuditingAccessDeniedHandler implements AccessDeniedHandler {
     private static final Logger SECURITY = LoggerFactory.getLogger("SECURITY");
 

@@ -1,4 +1,4 @@
-package com.example.userservice.outbox;
+package com.example.common.outbox;
 
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.json.JsonMapper;
@@ -17,8 +16,8 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Records an event in outbox_event. Debezium (connector user-service-outbox) streams the row to Kafka:
- * aggregate_type picks the topic (user.&lt;aggregate_type&gt;-events), aggregate_id becomes the message key,
+ * Records an event in outbox_event. Debezium streams the row to Kafka:
+ * aggregate_type picks the topic, aggregate_id becomes the message key,
  * event_id, event_type and traceparent become the "id", "eventType" and "traceparent" headers.
  * The traceparent lets consumers continue the current trace, so their log lines share its traceId.
  * <p>
@@ -26,7 +25,6 @@ import java.util.UUID;
  * so both commit or neither does.
  */
 @Slf4j
-@Component
 @AllArgsConstructor
 public class OutboxWriter {
     private final JdbcClient jdbcClient;

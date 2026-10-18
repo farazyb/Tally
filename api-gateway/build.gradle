@@ -19,6 +19,7 @@ ext {
 }
 
 dependencies {
+    implementation project(':tally-common')
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     // Tracing: puts traceId/spanId in the MDC (and so in every log line) and propagates them.
     implementation 'org.springframework.boot:spring-boot-micrometer-tracing-brave'

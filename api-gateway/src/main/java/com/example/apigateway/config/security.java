@@ -1,7 +1,7 @@
 package com.example.apigateway.config;
 
-import com.example.apigateway.security.AuditingAccessDeniedHandler;
-import com.example.apigateway.security.AuditingAuthenticationEntryPoint;
+import com.example.common.security.AuditingAccessDeniedHandler;
+import com.example.common.security.AuditingAuthenticationEntryPoint;
 import lombok.Builder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
