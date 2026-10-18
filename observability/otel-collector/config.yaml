@@ -1,0 +1,27 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  transform/route:
+    error_mode: ignore
+    log_statements:
+      - set(log.attributes["data_stream.dataset"], "tally.app")
+      - set(log.attributes["data_stream.dataset"], "tally.security") where instrumentation_scope.name == "SECURITY"
+
+exporters:
+  elasticsearch:
+    endpoint: http://es-local-dev:9200
+    headers:
+      Authorization: "ApiKey ${env:ELASTICSEARCH_API_KEY}"
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [transform/route]
+      exporters: [elasticsearch, debug]
