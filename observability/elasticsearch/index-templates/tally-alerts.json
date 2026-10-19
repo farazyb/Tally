@@ -1,0 +1,29 @@
+{
+  "index_patterns": [
+    "tally-alerts"
+  ],
+  "priority": 200,
+  "template": {
+    "mappings": {
+      "properties": {
+        "@timestamp": { "type": "date" },
+        "rule": { "type": "keyword" },
+        "alert_id": { "type": "keyword" },
+        "alert_uuid": { "type": "keyword" },
+        "action_group": { "type": "keyword" },
+        "service": {
+          "properties": {
+            "name": { "type": "keyword" }
+          }
+        },
+        "path": { "type": "keyword" },
+        "failures": { "type": "long" },
+        "last_seen": { "type": "date" },
+        "alert_date": { "type": "date" }
+      }
+    }
+  },
+  "_meta": {
+    "description": "Tally alert notifications written by the Kibana index connector"
+  }
+}
