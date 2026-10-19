@@ -1,0 +1,45 @@
+{
+  "index_patterns": [
+    "logs-tally.app.otel-*"
+  ],
+  "template": {
+    "settings": {
+      "index": {
+        "lifecycle": {
+          "name": "tally-app-logs"
+        }
+      }
+    },
+    "mappings": {
+      "properties": {
+        "data_stream.type": {
+          "type": "constant_keyword",
+          "value": "logs"
+        }
+      }
+    }
+  },
+  "composed_of": [
+    "logs@mappings",
+    "logs@settings",
+    "otel@mappings",
+    "otel@settings",
+    "logs-otel@mappings",
+    "semconv-resource-to-ecs@mappings",
+    "logs@custom",
+    "logs-otel@custom",
+    "ecs@mappings"
+  ],
+  "priority": 200,
+  "_meta": {
+    "description": "Tally application logs (OTel mode), 14-day retention"
+  },
+  "data_stream": {
+    "hidden": false,
+    "allow_custom_routing": false
+  },
+  "ignore_missing_component_templates": [
+    "logs@custom",
+    "logs-otel@custom"
+  ]
+}
