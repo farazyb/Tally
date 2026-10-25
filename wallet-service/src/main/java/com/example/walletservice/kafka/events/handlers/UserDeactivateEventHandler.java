@@ -1,7 +1,7 @@
-package com.example.walletservice.kafka.handlers;
+package com.example.walletservice.kafka.events.handlers;
 
-import com.example.walletservice.kafka.EventHandler;
-import com.example.walletservice.kafka.EventType;
+import com.example.walletservice.kafka.events.EventHandler;
+import com.example.walletservice.kafka.events.EventType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

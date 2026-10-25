@@ -1,4 +1,4 @@
-package com.example.walletservice.kafka;
+package com.example.walletservice.kafka.events;
 
 import java.util.Arrays;
 import java.util.Optional;
