@@ -85,7 +85,10 @@ class WalletCreationIntegrationTest {
     }
 
     private long outboxEventCount(String owner) {
-        return jdbcClient.sql("select count(*) from outbox_event where aggregate_id = :owner and event_type = 'WalletCreated'")
+        return jdbcClient.sql("""
+                        select count(*) from outbox_event
+                        where aggregate_id = :owner and aggregate_type = 'events' and event_type = 'WalletOpened'
+                        """)
                 .param("owner", owner).query(Long.class).single();
     }
 

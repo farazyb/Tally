@@ -272,6 +272,36 @@ class WalletTest {
                 .isThrownBy(() -> wallet.deposit(money("60.00"), U1, P1));
     }
 
+    @Test
+    void anOpenedWalletHasWalletOpenedAsItsOnlyNewEntry() {
+        Wallet wallet = Wallet.open(OWNER, CREATION_REQUEST, ACCOUNT);
+
+        assertThat(wallet.newEntries()).extracting(WalletEventEntry::payload)
+                .containsExactly(new WalletOpened(OWNER, ACCOUNT));
+    }
+
+    @Test
+    void aLoadedWalletHasNoNewEntriesUntilACommandRaisesOne() {
+        Wallet wallet = walletWith(deposited("100.00", P1));
+
+        assertThat(wallet.newEntries()).isEmpty();
+        wallet.debit(money("30.00"), T1, COUNTERPARTY);
+        assertThat(wallet.newEntries()).singleElement().satisfies(entry -> {
+            assertThat(entry.payload()).isEqualTo(new FundsDebited(money("30.00"), T1, COUNTERPARTY));
+            assertThat(entry.version()).isEqualTo(3);
+        });
+    }
+
+    @Test
+    void aDuplicateOrRejectedCommandAddsNoNewEntry() {
+        Wallet wallet = walletWith(deposited("20.00", P1), debited("10.00", T1));
+
+        wallet.debit(money("10.00"), T1, COUNTERPARTY);
+        assertThatExceptionOfType(InsufficientFundsException.class)
+                .isThrownBy(() -> wallet.debit(money("50.00"), T9, COUNTERPARTY));
+        assertThat(wallet.newEntries()).isEmpty();
+    }
+
     private static Wallet walletWith(WalletEvent... events) {
         List<WalletEvent> history = new ArrayList<>();
         history.add(new WalletOpened(OWNER, ACCOUNT));
