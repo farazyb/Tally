@@ -1,4 +1,4 @@
-package com.example.walletservice.kafka;
+package com.example.walletservice.kafka.events;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

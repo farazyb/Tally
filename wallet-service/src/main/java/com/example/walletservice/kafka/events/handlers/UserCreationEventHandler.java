@@ -1,7 +1,7 @@
-package com.example.walletservice.kafka.handlers;
+package com.example.walletservice.kafka.events.handlers;
 
-import com.example.walletservice.kafka.EventHandler;
-import com.example.walletservice.kafka.EventType;
+import com.example.walletservice.kafka.events.EventHandler;
+import com.example.walletservice.kafka.events.EventType;
 import com.example.walletservice.kafka.events.ClientProfileCreatedEvent;
 import com.example.walletservice.services.WalletService;
 import lombok.AllArgsConstructor;
@@ -20,9 +20,9 @@ public class UserCreationEventHandler implements EventHandler {
     public void handle(String eventId, String payload) {
         ClientProfileCreatedEvent event = jsonMapper.readValue(payload, ClientProfileCreatedEvent.class);
         if (event.subKey() == null || event.subKey().isBlank()) {
-            throw new IllegalArgumentException("ClientProfileCreated event " + eventId + " has no subKey");
+            throw new IllegalArgumentException("ClientProfileCreated event " + eventId + " has no owner");
         }
-        log.atDebug().addKeyValue("eventId", eventId).addKeyValue("subKey", event.subKey())
+        log.atDebug().addKeyValue("eventId", eventId).addKeyValue("owner", event.subKey())
                 .log("Handling ClientProfileCreated");
         walletService.createWallet(event.subKey(), eventId);
     }
