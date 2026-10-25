@@ -64,6 +64,8 @@ public class Wallet {
     @Transient
     private boolean replayed;
     @Transient
+    private int replayedEntries;
+    @Transient
     private Status status;
     @Transient
     private Money balance;
@@ -217,6 +219,12 @@ public class Wallet {
         return events.size();
     }
 
+    /** The entries appended since this instance was loaded or opened. */
+    public List<WalletEventEntry> newEntries() {
+        ensureReplayed();
+        return List.copyOf(events.subList(replayedEntries, events.size()));
+    }
+
     private void ensureReplayed() {
         if (replayed) {
             return;
@@ -226,6 +234,7 @@ public class Wallet {
         credits = new HashMap<>();
         deposits = new HashMap<>();
         events.forEach(entry -> apply(entry.payload()));
+        replayedEntries = events.size();
         replayed = true;
     }
 
