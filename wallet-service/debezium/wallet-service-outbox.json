@@ -21,7 +21,7 @@
     "transforms.outbox.table.field.event.key": "aggregate_id",
     "transforms.outbox.table.field.event.payload": "payload",
     "transforms.outbox.route.by.field": "aggregate_type",
-    "transforms.outbox.route.topic.replacement": "wallet.${routedByValue}-events",
+    "transforms.outbox.route.topic.replacement": "wallet.${routedByValue}",
     "transforms.outbox.table.fields.additional.placement": "event_type:header:eventType,traceparent:header:traceparent",
     "transforms.outbox.table.expand.json.payload": "true",
 
